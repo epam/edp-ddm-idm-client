@@ -1,0 +1,19 @@
+[
+  {
+    "id": "testId",
+    "createdTimestamp": 1644303637852,
+    "username": "username",
+    "enabled": true,
+    "totp": false,
+    "emailVerified": true,
+    "attributes": {
+      "fullName": "testFullName",
+      "drfo": [
+        "123"
+      ]
+    },
+    "disableableCredentialTypes": [],
+    "requiredActions": [],
+    "notBefore": 0
+  }
+]

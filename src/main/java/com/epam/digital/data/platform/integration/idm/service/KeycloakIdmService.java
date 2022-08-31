@@ -94,7 +94,9 @@ public class KeycloakIdmService implements IdmService {
         .filter(this::hasFullNameAttribute)
         .map(user -> IdmUser.builder().id(user.getId()).userName(user.getUsername()).fullName(
             user.getAttributes().get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE)
-                .get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE_INDEX)).build())
+                .get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE_INDEX))
+            .attributes(user.getAttributes())
+            .build())
         .sorted(Comparator.comparing(IdmUser::getFullName))
         .collect(Collectors.toList());
   }

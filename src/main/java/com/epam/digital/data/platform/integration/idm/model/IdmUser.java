@@ -17,6 +17,8 @@
 package com.epam.digital.data.platform.integration.idm.model;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 
@@ -27,5 +29,6 @@ public class IdmUser implements Serializable {
   private String id;
   private String userName;
   private String fullName;
+  private Map<String, List<String>> attributes;
 
 }

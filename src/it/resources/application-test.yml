@@ -1,0 +1,6 @@
+keycloak:
+  url: http://localhost:8778
+  test:
+    realm: testRealm
+    clientId: testclientId
+    clientSecret: testclientSecret

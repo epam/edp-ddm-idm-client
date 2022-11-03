@@ -22,6 +22,7 @@ import com.epam.digital.data.platform.integration.idm.model.IdmRole;
 import com.epam.digital.data.platform.integration.idm.model.IdmUser;
 import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -73,6 +74,12 @@ public class KeycloakIdmService implements IdmService {
 
   @Override
   public List<IdmUser> searchUsers(SearchUserQuery searchUserQuery) {
+    return mapToIdmUsers(client.searchUsersByAttributes(searchUserQuery));
+  }
+
+  @Override
+  public List<IdmUser> searchUsers(
+      SearchUsersByEqualsAndStartsWithAttributesRequestDto searchUserQuery) {
     return mapToIdmUsers(client.searchUsersByAttributes(searchUserQuery));
   }
 

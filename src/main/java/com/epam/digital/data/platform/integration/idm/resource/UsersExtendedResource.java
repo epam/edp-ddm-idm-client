@@ -17,6 +17,7 @@
 package com.epam.digital.data.platform.integration.idm.resource;
 
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -25,13 +26,20 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import org.keycloak.representations.idm.UserRepresentation;
 
-@Path("/realms/{realm}/users/search")
+@Path("/realms/{realm}/users")
 @Consumes(MediaType.APPLICATION_JSON)
 public interface UsersExtendedResource {
 
   @POST
+  @Path("/search")
   @Consumes(MediaType.APPLICATION_JSON)
   List<UserRepresentation> searchUsersByAttributes(@PathParam("realm") String realm,
       SearchUserQuery searchUserRequestDto);
+
+  @POST
+  @Path("/search-by-attributes")
+  @Consumes(MediaType.APPLICATION_JSON)
+  List<UserRepresentation> searchUsersByAttributes(@PathParam("realm") String realm,
+      SearchUsersByEqualsAndStartsWithAttributesRequestDto searchUserRequestDto);
 
 }

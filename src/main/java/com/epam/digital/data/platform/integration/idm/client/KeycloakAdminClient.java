@@ -18,6 +18,7 @@ package com.epam.digital.data.platform.integration.idm.client;
 
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.resource.UsersExtendedResource;
 import com.google.common.collect.Maps;
 import java.net.URI;
@@ -199,6 +200,22 @@ public class KeycloakAdminClient {
     return wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(
                 serverUrl))
             .searchUsersByAttributes(realm, searchRequest),
+        () -> String.format("Couldn't find users by attributes in realm %s", realm));
+  }
+
+  /**
+   * Retrieve users with certain custom attributes
+   *
+   * @param searchRequestDto search request with required attributes map
+   * @return users that have specified attributes
+   * @see SearchUsersByEqualsAndStartsWithAttributesRequestDto
+   */
+  @NewSpan
+  public List<UserRepresentation> searchUsersByAttributes(
+      SearchUsersByEqualsAndStartsWithAttributesRequestDto searchRequestDto) {
+    return 
+        wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
+            .searchUsersByAttributes(realm, searchRequestDto),
         () -> String.format("Couldn't find users by attributes in realm %s", realm));
   }
 

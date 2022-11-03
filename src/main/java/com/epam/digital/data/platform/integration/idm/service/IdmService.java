@@ -19,6 +19,7 @@ package com.epam.digital.data.platform.integration.idm.service;
 import com.epam.digital.data.platform.integration.idm.model.IdmRole;
 import com.epam.digital.data.platform.integration.idm.model.IdmUser;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.List;
 
 public interface IdmService {
@@ -34,6 +35,8 @@ public interface IdmService {
   List<IdmUser> getRoleUserMembers(String role);
 
   List<IdmUser> searchUsers(SearchUserQuery searchUserQuery);
+  
+  List<IdmUser> searchUsers(SearchUsersByEqualsAndStartsWithAttributesRequestDto searchUserQuery);
 
   List<IdmUser> getUserByUserName(String username);
 

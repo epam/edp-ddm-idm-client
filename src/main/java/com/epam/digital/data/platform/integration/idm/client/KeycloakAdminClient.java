@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
@@ -150,32 +151,29 @@ public class KeycloakAdminClient {
   /**
    * Remove role from keycloak user
    *
-   * @param roleScopeResource  role scope resource
-   * @param roleRepresentation role representation to remove
+   * @param roleScopeResource role scope resource
+   * @param roles             role representations to remove
    */
   @NewSpan
-  public void removeRole(RoleScopeResource roleScopeResource,
-      RoleRepresentation roleRepresentation) {
-    var roleName = roleRepresentation.getName();
-    log.info("Removing role {} from user", roleName);
-    wrapKeycloakVoidRequest(() -> roleScopeResource.remove(List.of(roleRepresentation)),
-        () -> String.format("Couldn't remove role %s from user", roleName));
-    log.info("Role {} removed from user", roleName);
+  public void removeRoles(RoleScopeResource roleScopeResource, List<RoleRepresentation> roles) {
+    log.info("Removing roles {} from user", roles);
+    wrapKeycloakVoidRequest(() -> roleScopeResource.remove(roles),
+        () -> String.format("Couldn't remove roles %s from user", roles));
+    log.info("Roles {} removed from user", roles);
   }
 
   /**
    * Add role to keycloak user
    *
-   * @param roleScopeResource  role scope resource
-   * @param roleRepresentation role representation to add
+   * @param roleScopeResource role scope resource
+   * @param roles             role representations to add
    */
   @NewSpan
-  public void addRole(RoleScopeResource roleScopeResource, RoleRepresentation roleRepresentation) {
-    var roleName = roleRepresentation.getName();
-    log.info("Adding role {} to user", roleName);
-    wrapKeycloakVoidRequest(() -> roleScopeResource.add(List.of(roleRepresentation)),
-        () -> String.format("Couldn't add role %s to user", roleName));
-    log.info("Role {} added to user", roleName);
+  public void addRoles(RoleScopeResource roleScopeResource, List<RoleRepresentation> roles) {
+    log.info("Adding roles {} to user", roles);
+    wrapKeycloakVoidRequest(() -> roleScopeResource.add(roles),
+        () -> String.format("Couldn't add roles %s to user", roles));
+    log.info("Roles {} added to user", roles);
   }
 
   /**

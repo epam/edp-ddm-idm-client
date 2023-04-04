@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.epam.digital.data.platform.integration.idm.model.IdmUser;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.List;
+import org.keycloak.representations.idm.RoleRepresentation;
 
 public interface IdmService {
 
@@ -28,9 +29,15 @@ public interface IdmService {
 
   List<IdmRole> getRoles();
 
+  List<RoleRepresentation> getRoleRepresentations();
+
   void removeRole(String username, String role);
 
+  void removeRoles(String username, List<RoleRepresentation> roles);
+
   void addRole(String username, String role);
+
+  void addRoles(String username, List<RoleRepresentation> roles);
 
   List<IdmUser> getRoleUserMembers(String role);
 

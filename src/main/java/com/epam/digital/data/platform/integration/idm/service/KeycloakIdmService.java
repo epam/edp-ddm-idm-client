@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,12 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.RoleScopeResource;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 @RequiredArgsConstructor
@@ -50,20 +53,29 @@ public class KeycloakIdmService implements IdmService {
   }
 
   @Override
-  public void removeRole(String username, String role) {
+  public List<RoleRepresentation> getRoleRepresentations() {
     var realmResource = client.getRealmResource();
-    var roleRepresentation = client.getRoleRepresentation(realmResource, role);
-    var userRepresentation = this.getUserRepresentation(realmResource, username);
-    var roleScopeResource = client.getRoleScopeResource(realmResource, userRepresentation.getId());
-    client.removeRole(roleScopeResource, roleRepresentation);
+    return client.getKeycloakRoles(realmResource);
   }
 
+  @Override
+  public void removeRole(String username, String role) {
+    performOperationForRole(username, role, client::removeRoles);
+  }
+
+  @Override
+  public void removeRoles(String username, List<RoleRepresentation> roles) {
+    performOperationForRoles(username, roles, client::removeRoles);
+  }
+
+  @Override
   public void addRole(String username, String role) {
-    var realmResource = client.getRealmResource();
-    var roleRepresentation = client.getRoleRepresentation(realmResource, role);
-    var userRepresentation = this.getUserRepresentation(realmResource, username);
-    var roleScope = client.getRoleScopeResource(realmResource, userRepresentation.getId());
-    client.addRole(roleScope, roleRepresentation);
+    performOperationForRole(username, role, client::addRoles);
+  }
+
+  @Override
+  public void addRoles(String username, List<RoleRepresentation> roles) {
+    performOperationForRoles(username, roles, client::addRoles);
   }
 
   @Override
@@ -100,8 +112,8 @@ public class KeycloakIdmService implements IdmService {
     return roleUserMembers.stream()
         .filter(this::hasFullNameAttribute)
         .map(user -> IdmUser.builder().id(user.getId()).userName(user.getUsername()).fullName(
-            user.getAttributes().get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE)
-                .get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE_INDEX))
+                user.getAttributes().get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE)
+                    .get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE_INDEX))
             .attributes(user.getAttributes())
             .build())
         .sorted(Comparator.comparing(IdmUser::getFullName))
@@ -128,5 +140,25 @@ public class KeycloakIdmService implements IdmService {
           String.format("Found %d users with name %s, but expect one", users.size(), userName));
     }
     return users.get(0);
+  }
+
+  private void performOperationForRoles(String username, List<RoleRepresentation> roles,
+      BiConsumer<RoleScopeResource, List<RoleRepresentation>> operation) {
+    var realmResource = client.getRealmResource();
+    var roleScopeResource = getRoleScopeResource(realmResource, username);
+    operation.accept(roleScopeResource, roles);
+  }
+
+  private void performOperationForRole(String username, String role,
+      BiConsumer<RoleScopeResource, List<RoleRepresentation>> operation) {
+    var realmResource = client.getRealmResource();
+    var roleRepresentation = client.getRoleRepresentation(realmResource, role);
+    var roleScopeResource = getRoleScopeResource(realmResource, username);
+    operation.accept(roleScopeResource, List.of(roleRepresentation));
+  }
+
+  private RoleScopeResource getRoleScopeResource(RealmResource realmResource, String username) {
+    var userRepresentation = this.getUserRepresentation(realmResource, username);
+    return client.getRoleScopeResource(realmResource, userRepresentation.getId());
   }
 }

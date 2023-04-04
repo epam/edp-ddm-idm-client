@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -159,22 +158,25 @@ class KeycloakAdminClientTest {
   @Test
   void testRemoveRole() {
     var roleRepresentation = new RoleRepresentation(role, null, true);
+    var roleRepresentationList = List.of(roleRepresentation);
 
-    client.removeRole(roleScopeResource, roleRepresentation);
-    verify(roleScopeResource, times(1)).remove(List.of(roleRepresentation));
+    client.removeRoles(roleScopeResource, roleRepresentationList);
+    verify(roleScopeResource).remove(roleRepresentationList);
   }
 
   @Test
   void testAddRole() {
     var roleRepresentation = new RoleRepresentation(role, null, true);
+    var roleRepresentationList = List.of(roleRepresentation);
 
-    client.addRole(roleScopeResource, roleRepresentation);
-    verify(roleScopeResource, times(1)).add(List.of(roleRepresentation));
+    client.addRoles(roleScopeResource, roleRepresentationList);
+    verify(roleScopeResource).add(roleRepresentationList);
   }
 
   @Test
   void testGetAccessTokenString() {
     var token = "token";
+
     when(keycloak.tokenManager()).thenReturn(tokenManager);
     when(tokenManager.getAccessTokenString()).thenReturn(token);
 
@@ -194,12 +196,13 @@ class KeycloakAdminClientTest {
   @Test
   void testRoleNotAdded() {
     var roleRepresentation = new RoleRepresentation(role, null, true);
+
     doThrow(new RuntimeException()).when(roleScopeResource).add(List.of(roleRepresentation));
 
     var exception = assertThrows(KeycloakException.class,
-        () -> client.addRole(roleScopeResource, roleRepresentation));
+        () -> client.addRoles(roleScopeResource, List.of(roleRepresentation)));
     assertThat(exception.getMessage()).isEqualTo(
-        String.format("Couldn't add role %s to user", role));
+        String.format("Couldn't add roles [%s] to user", role));
   }
 
   @Test
@@ -215,10 +218,12 @@ class KeycloakAdminClientTest {
     var userRepresentations = Collections.singletonList(mock(UserRepresentation.class));
     var searchRequest = SearchUserQuery.builder().build();
     var resource = mock(UsersExtendedResource.class);
+
     when(keycloak.proxy(UsersExtendedResource.class, URI.create("testUrl"))).thenReturn(resource);
     when(resource.searchUsersByAttributes(ream, searchRequest)).thenReturn(userRepresentations);
+
     var actual = client.searchUsersByAttributes(searchRequest);
-    assertThat(actual.size()).isEqualTo(1);
+    assertThat(actual.size()).isOne();
   }
 
   @Test
@@ -235,6 +240,6 @@ class KeycloakAdminClientTest {
         attributeValue);
 
     user.setAttributes(Map.of(KeycloakSystemAttribute.KATOTTG, attributeValue));
-    verify(userResource, times(1)).update(user);
+    verify(userResource).update(user);
   }
 }

@@ -16,14 +16,23 @@
 
 package com.epam.digital.data.platform.integration.idm.model;
 
-public class KeycloakSystemAttribute {
-  public static final String FULL_NAME_ATTRIBUTE = "fullName";
-  public static final String DRFO = "drfo";
-  public static final String EDRPOU = "edrpou";
-  @Deprecated(forRemoval = true)
-  public static final String KATOTTG = "KATOTTG";
-  public static final int FULL_NAME_ATTRIBUTE_INDEX = 0;
+import java.io.Serializable;
+import java.util.List;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
-  private KeycloakSystemAttribute() {
+@Data
+@Builder
+public class IdmUsersResponse implements Serializable {
+
+  private final List<IdmUser> users;
+  private final Pagination pagination;
+
+  @Builder
+  @Getter
+  public static class Pagination {
+
+    private Integer continueToken;
   }
 }

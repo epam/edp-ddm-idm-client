@@ -1,0 +1,13 @@
+{
+  "attributesEquals": null,
+  "attributesStartsWith": {
+    "hierarchy": [
+      "100"
+    ]
+  },
+  "attributesThatAreStartFor": null,
+  "pagination": {
+    "continueToken": 1022,
+    "limit": 2
+  }
+}

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
 package com.epam.digital.data.platform.integration.idm.client;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.when;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
 import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto.Pagination;
 import com.epam.digital.data.platform.integration.idm.resource.UsersExtendedResource;
 import java.net.URI;
 import java.util.Collections;
@@ -47,12 +51,13 @@ import org.keycloak.admin.client.token.TokenManager;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class KeycloakAdminClientTest {
 
-  private final String ream = "testRealm";
+  private final String realm = "testRealm";
   private final String username = "username";
   private final String role = "role";
 
@@ -79,12 +84,12 @@ class KeycloakAdminClientTest {
 
   @BeforeEach
   public void init() {
-    client = new KeycloakAdminClient(ream, "testUrl", keycloak);
+    client = new KeycloakAdminClient(realm, "testUrl", keycloak);
   }
 
   @Test
   void testGetRealmResource() {
-    when(keycloak.realm(ream)).thenReturn(realmResource);
+    when(keycloak.realm(realm)).thenReturn(realmResource);
 
     var result = client.getRealmResource();
     assertThat(result).isEqualTo(realmResource);
@@ -186,11 +191,11 @@ class KeycloakAdminClientTest {
 
   @Test
   void testRealmNotFound() {
-    when(keycloak.realm(ream)).thenThrow(RuntimeException.class);
+    when(keycloak.realm(realm)).thenThrow(RuntimeException.class);
 
     var exception = assertThrows(KeycloakException.class,
         () -> client.getRealmResource());
-    assertThat(exception.getMessage()).isEqualTo(String.format("Couldn't find realm %s", ream));
+    assertThat(exception.getMessage()).isEqualTo(String.format("Couldn't find realm %s", realm));
   }
 
   @Test
@@ -210,7 +215,7 @@ class KeycloakAdminClientTest {
     var exception = assertThrows(KeycloakException.class,
         () -> client.searchUsersByAttributes(SearchUserQuery.builder().build()));
     assertThat(exception.getMessage()).isEqualTo(
-        String.format("Couldn't find users by attributes in realm %s", ream));
+        String.format("Couldn't find users by attributes in realm %s", realm));
   }
 
   @Test
@@ -220,10 +225,44 @@ class KeycloakAdminClientTest {
     var resource = mock(UsersExtendedResource.class);
 
     when(keycloak.proxy(UsersExtendedResource.class, URI.create("testUrl"))).thenReturn(resource);
-    when(resource.searchUsersByAttributes(ream, searchRequest)).thenReturn(userRepresentations);
-
+    when(resource.searchUsersByAttributes(realm, searchRequest)).thenReturn(userRepresentations);
     var actual = client.searchUsersByAttributes(searchRequest);
     assertThat(actual.size()).isOne();
+  }
+
+  @Test
+  void testSearchUsersByAttributes() {
+    var searchRequest = SearchUsersByAttributesRequestDto.builder().build();
+    var userRepresentations = Collections.singletonList(mock(UserRepresentation.class));
+    var searchResponse = new SearchUsersByAttributesResponseDto();
+    searchResponse.setUsers(userRepresentations);
+    var pagination = new Pagination();
+    pagination.setContinueToken(1);
+    searchResponse.setPagination(pagination);
+
+    var resource = mock(UsersExtendedResource.class);
+    Mockito.doReturn(resource).when(keycloak)
+        .proxy(UsersExtendedResource.class, URI.create("testUrl"));
+    Mockito.doReturn(searchResponse).when(resource).searchUsersByAttributes(realm, searchRequest);
+
+    var actual = client.searchUsersByAttributes(searchRequest);
+
+    assertThat(actual).isSameAs(searchResponse);
+  }
+
+  @Test
+  void testSearchUsersByAttributes_exception() {
+    var searchRequest = SearchUsersByAttributesRequestDto.builder().build();
+
+    var resource = mock(UsersExtendedResource.class);
+    Mockito.doReturn(resource).when(keycloak)
+        .proxy(UsersExtendedResource.class, URI.create("testUrl"));
+    Mockito.doThrow(RuntimeException.class).when(resource)
+        .searchUsersByAttributes(realm, searchRequest);
+
+    assertThatThrownBy(() -> client.searchUsersByAttributes(searchRequest))
+        .isInstanceOf(KeycloakException.class)
+        .hasMessage("Couldn't find users by attributes in realm %s", realm);
   }
 
   @Test

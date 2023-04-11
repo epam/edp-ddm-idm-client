@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,8 @@ package com.epam.digital.data.platform.integration.idm.client;
 
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.resource.UsersExtendedResource;
 import com.google.common.collect.Maps;
@@ -178,6 +180,7 @@ public class KeycloakAdminClient {
 
   /**
    * @return current service account access token
+   *
    * @throws KeycloakException in case of any error
    */
   @NewSpan
@@ -191,9 +194,13 @@ public class KeycloakAdminClient {
    *
    * @param searchRequest search request with required attributes map
    * @return users that have specified attributes
+   *
    * @see SearchUserQuery
+   * @deprecated use
+   * {@link KeycloakAdminClient#searchUsersByAttributes(SearchUsersByAttributesRequestDto)} instead
    */
   @NewSpan
+  @Deprecated(forRemoval = true)
   public List<UserRepresentation> searchUsersByAttributes(SearchUserQuery searchRequest) {
     return wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(
                 serverUrl))
@@ -206,15 +213,36 @@ public class KeycloakAdminClient {
    *
    * @param searchRequestDto search request with required attributes map
    * @return users that have specified attributes
+   *
    * @see SearchUsersByEqualsAndStartsWithAttributesRequestDto
+   * @deprecated use
+   * {@link KeycloakAdminClient#searchUsersByAttributes(SearchUsersByAttributesRequestDto)} instead
    */
   @NewSpan
+  @Deprecated(forRemoval = true)
   public List<UserRepresentation> searchUsersByAttributes(
       SearchUsersByEqualsAndStartsWithAttributesRequestDto searchRequestDto) {
-    return 
+    return
         wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
-            .searchUsersByAttributes(realm, searchRequestDto),
-        () -> String.format("Couldn't find users by attributes in realm %s", realm));
+                .searchUsersByAttributes(realm, searchRequestDto),
+            () -> String.format("Couldn't find users by attributes in realm %s", realm));
+  }
+
+  /**
+   * Retrieve users with certain custom attributes
+   *
+   * @param requestDto search request with required attributes map
+   * @return users that have specified attributes
+   *
+   * @see SearchUsersByAttributesRequestDto
+   */
+  @NewSpan
+  public SearchUsersByAttributesResponseDto searchUsersByAttributes(
+      SearchUsersByAttributesRequestDto requestDto) {
+    return
+        wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
+                .searchUsersByAttributes(realm, requestDto),
+            () -> String.format("Couldn't find users by attributes in realm %s", realm));
   }
 
   @NewSpan

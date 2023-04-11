@@ -1,0 +1,48 @@
+{
+  "users": [
+    {
+      "id": "someId",
+      "createdTimestamp": 1644303637852,
+      "username": "john_doe",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "attributes": {
+        "fullName": "John Doe",
+        "drfo": [
+          "1234567891"
+        ],
+        "hierarchy": [
+          "100"
+        ]
+      },
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0
+    },
+    {
+      "id": "someNextId",
+      "createdTimestamp": 1644303637921,
+      "username": "jane_doe",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "attributes": {
+        "fullName": "Jane Doe",
+        "drfo": [
+          "1234567890"
+        ],
+        "hierarchy": [
+          "100.200",
+          "101"
+        ]
+      },
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0
+    }
+  ],
+  "pagination": {
+    "continueToken": 1025
+  }
+}

@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package com.epam.digital.data.platform.integration.idm.factory;
 
 import com.epam.digital.data.platform.integration.idm.client.KeycloakAdminClient;
 import com.epam.digital.data.platform.integration.idm.client.PublicKeycloakAuthClient;
+import com.epam.digital.data.platform.integration.idm.mapper.IdmUsersMapper;
 import com.epam.digital.data.platform.integration.idm.service.IdmService;
 import com.epam.digital.data.platform.integration.idm.service.KeycloakIdmService;
 import com.epam.digital.data.platform.integration.idm.service.PublicIdmService;
@@ -34,6 +35,7 @@ public class IdmServiceFactory {
   private static final String KEYCLOAK_AUTH_URL_PATTERN = "%s/auth";
   private final String serverUrl;
   private final ApplicationContext applicationContext;
+  private final IdmUsersMapper idmUsersMapper;
 
   public IdmService createIdmService(String realm, String clientId, String clientSecret) {
     var serverAthUrl = String.format(KEYCLOAK_AUTH_URL_PATTERN, this.serverUrl);
@@ -44,7 +46,7 @@ public class IdmServiceFactory {
         .serverUrl(serverAthUrl)
         .build();
     var keycloakAdminClient = new KeycloakAdminClient(realm, serverAthUrl, keycloak);
-    return new KeycloakIdmService(keycloakAdminClient);
+    return new KeycloakIdmService(keycloakAdminClient, idmUsersMapper);
   }
 
   public PublicIdmService createPublicIdmService() {

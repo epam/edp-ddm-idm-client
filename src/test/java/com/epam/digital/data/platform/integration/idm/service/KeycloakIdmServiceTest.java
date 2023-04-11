@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,13 +23,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.digital.data.platform.integration.idm.client.KeycloakAdminClient;
+import com.epam.digital.data.platform.integration.idm.mapper.IdmUsersMapper;
 import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto.Pagination;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +42,10 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleScopeResource;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,10 +65,12 @@ class KeycloakIdmServiceTest {
   private UserRepresentation userRepresentation;
   @Mock
   private RealmResource realmResource;
+  @Spy
+  private IdmUsersMapper idmUsersMapper = Mappers.getMapper(IdmUsersMapper.class);
 
   @BeforeEach
   void setUp() {
-    service = new KeycloakIdmService(client);
+    service = new KeycloakIdmService(client, idmUsersMapper);
   }
 
   @Test
@@ -178,6 +188,43 @@ class KeycloakIdmServiceTest {
     var users = service.searchUsers(query);
     assertThat(users).hasSize(1);
     assertThat(users.get(0).getUserName()).isEqualTo(TEST_USERNAME);
+  }
+
+  @Test
+  void searchUsersByAttributes() {
+    var searchRequestDto = SearchUsersByAttributesRequestDto.builder().build();
+    var user = new UserRepresentation();
+    user.setId("someId");
+    user.setUsername("john_doe");
+    user.setAttributes(Map.of(
+        KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE, List.of("John Doe"),
+        "attribute1", List.of("value1", "value2")
+    ));
+    var userWithoutFullName = new UserRepresentation();
+    var searchResponseDto = new SearchUsersByAttributesResponseDto();
+    searchResponseDto.setUsers(List.of(user, userWithoutFullName));
+    var pagination = new Pagination();
+    pagination.setContinueToken(1);
+    searchResponseDto.setPagination(pagination);
+
+    Mockito.doReturn(searchResponseDto).when(client).searchUsersByAttributes(searchRequestDto);
+
+    var actualIdmUserResponse = service.searchUsers(searchRequestDto);
+
+    Assertions.assertThat(actualIdmUserResponse)
+        .hasFieldOrProperty("users")
+        .hasFieldOrProperty("pagination");
+    Assertions.assertThat(actualIdmUserResponse.getUsers())
+        .hasSize(1)
+        .element(0)
+        .hasFieldOrPropertyWithValue("id", "someId")
+        .hasFieldOrPropertyWithValue("userName", "john_doe")
+        .hasFieldOrPropertyWithValue("fullName", "John Doe")
+        .hasFieldOrPropertyWithValue("attributes", Map.of(
+            KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE, List.of("John Doe"),
+            "attribute1", List.of("value1", "value2")));
+    Assertions.assertThat(actualIdmUserResponse.getPagination())
+        .hasFieldOrPropertyWithValue("continueToken", 1);
   }
 
 

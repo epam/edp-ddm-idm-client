@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,13 @@ package com.epam.digital.data.platform.integration.idm.service;
 
 import com.epam.digital.data.platform.integration.idm.client.KeycloakAdminClient;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
+import com.epam.digital.data.platform.integration.idm.mapper.IdmUsersMapper;
 import com.epam.digital.data.platform.integration.idm.model.IdmRole;
 import com.epam.digital.data.platform.integration.idm.model.IdmUser;
+import com.epam.digital.data.platform.integration.idm.model.IdmUsersResponse;
 import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.Collection;
 import java.util.Comparator;
@@ -39,6 +42,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 public class KeycloakIdmService implements IdmService {
 
   private final KeycloakAdminClient client;
+  private final IdmUsersMapper idmUsersMapper;
 
   @Override
   public String getClientAccessToken() {
@@ -93,6 +97,11 @@ public class KeycloakIdmService implements IdmService {
   public List<IdmUser> searchUsers(
       SearchUsersByEqualsAndStartsWithAttributesRequestDto searchUserQuery) {
     return mapToIdmUsers(client.searchUsersByAttributes(searchUserQuery));
+  }
+
+  @Override
+  public IdmUsersResponse searchUsers(SearchUsersByAttributesRequestDto requestDto) {
+    return idmUsersMapper.toIdmUsersResponse(client.searchUsersByAttributes(requestDto));
   }
 
   @Override

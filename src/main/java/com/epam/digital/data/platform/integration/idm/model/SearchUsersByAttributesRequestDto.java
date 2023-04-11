@@ -16,14 +16,28 @@
 
 package com.epam.digital.data.platform.integration.idm.model;
 
-public class KeycloakSystemAttribute {
-  public static final String FULL_NAME_ATTRIBUTE = "fullName";
-  public static final String DRFO = "drfo";
-  public static final String EDRPOU = "edrpou";
-  @Deprecated(forRemoval = true)
-  public static final String KATOTTG = "KATOTTG";
-  public static final int FULL_NAME_ATTRIBUTE_INDEX = 0;
+import java.util.List;
+import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
 
-  private KeycloakSystemAttribute() {
+/**
+ * Representation of search users by attributes request body.
+ */
+@Builder
+@Getter
+public class SearchUsersByAttributesRequestDto {
+
+  private Map<String, List<String>> attributesEquals;
+  private Map<String, List<String>> attributesStartsWith;
+  private Map<String, List<String>> attributesThatAreStartFor;
+  private Pagination pagination;
+
+  @Builder
+  @Getter
+  public static class Pagination {
+
+    private Integer limit;
+    private Integer continueToken;
   }
 }

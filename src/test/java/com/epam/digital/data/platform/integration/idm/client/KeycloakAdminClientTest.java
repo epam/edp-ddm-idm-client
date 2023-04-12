@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,6 +80,8 @@ class KeycloakAdminClientTest {
   private RoleScopeResource roleScopeResource;
   @Mock
   private TokenManager tokenManager;
+  @Mock
+  private Response createUserResponse;
 
   private KeycloakAdminClient client;
 
@@ -280,5 +283,45 @@ class KeycloakAdminClientTest {
 
     user.setAttributes(Map.of(KeycloakSystemAttribute.KATOTTG, attributeValue));
     verify(userResource).update(user);
+  }
+
+  @Test
+  void testUpdateUserRepresentation() {
+    var userId = "userId";
+    var user = new UserRepresentation();
+    user.setUsername(username);
+    user.setId(userId);
+    when(realmResource.users()).thenReturn(usersResource);
+    when(usersResource.get(userId)).thenReturn(userResource);
+
+    client.updateUserRepresentation(realmResource, user);
+    verify(userResource).update(user);
+  }
+
+  @Test
+  void testCreateUserRepresentation() {
+    var user = new UserRepresentation();
+    user.setUsername(username);
+    when(realmResource.users()).thenReturn(usersResource);
+    when(usersResource.create(user)).thenReturn(createUserResponse);
+    when(createUserResponse.getStatus()).thenReturn(201);
+
+    client.createUserRepresentation(realmResource, user);
+    verify(usersResource).create(user);
+    verify(createUserResponse).getStatus();
+  }
+
+  @Test
+  void testCreateUserRepresentationWithDuplicatedUserName() {
+    var user = new UserRepresentation();
+    user.setUsername(username);
+    when(realmResource.users()).thenReturn(usersResource);
+    when(usersResource.create(user)).thenReturn(createUserResponse);
+    when(createUserResponse.getStatus()).thenReturn(409);
+
+    var exception = assertThrows(KeycloakException.class,
+        () -> client.createUserRepresentation(realmResource, user));
+    assertThat(exception.getMessage()).isEqualTo(
+        String.format("Couldn't create user with username: %s", username));
   }
 }

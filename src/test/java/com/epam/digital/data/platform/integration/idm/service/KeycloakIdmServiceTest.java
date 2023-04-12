@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.bytebuddy.utility.RandomString;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -250,5 +252,58 @@ class KeycloakIdmServiceTest {
     service.saveUserAttribute(TEST_USERNAME, KeycloakSystemAttribute.KATOTTG, attributeValue);
     verify(client, times(1)).saveUserAttribute(realmResource, userId,
         KeycloakSystemAttribute.KATOTTG, attributeValue);
+  }
+
+  @Test
+  void getUserRole() {
+    var username = RandomString.make();
+    var usersList = Collections.singletonList(userRepresentation);
+
+    when(client.getRealmResource()).thenReturn(realmResource);
+    when(client.getUsersRepresentationByUsername(realmResource, username)).thenReturn(usersList);
+    when(client.getRoleScopeResource(realmResource, userRepresentation.getId()))
+        .thenReturn(roleScopeResource);
+    when(roleScopeResource.listAll()).thenReturn(List.of(roleRepresentation));
+
+    var userRoles = service.getUserRoles(username);
+    assertThat(userRoles).isNotNull();
+    assertThat(userRoles).isNotEmpty();
+    assertThat(roleRepresentation).isEqualTo(userRoles.get(0));
+    verify(roleScopeResource).listAll();
+  }
+
+  @Test
+  void getUserRepresentationByUserName() {
+    when(client.getRealmResource()).thenReturn(realmResource);
+    when(client.getUsersRepresentationByUsername(realmResource, TEST_USERNAME)).thenReturn(
+        List.of(userRepresentation));
+
+    var user = service.getUserRepresentationByUserName(TEST_USERNAME);
+    AssertionsForClassTypes.assertThat(user).isEqualTo(userRepresentation);
+  }
+
+  @Test
+  void updateUserRepresentation() {
+    when(client.getRealmResource()).thenReturn(realmResource);
+
+    service.updateUserRepresentation(userRepresentation);
+    verify(client).updateUserRepresentation(realmResource, userRepresentation);
+  }
+
+  @Test
+  void createUserRepresentation() {
+    var roles = List.of(roleRepresentation);
+    var usersList = Collections.singletonList(userRepresentation);
+    when(client.getRealmResource()).thenReturn(realmResource);
+    when(userRepresentation.getUsername()).thenReturn(TEST_USERNAME);
+    when(userRepresentation.getId()).thenReturn(TEST_USER_ID);
+    when(client.getUsersRepresentationByUsername(realmResource, TEST_USERNAME)).thenReturn(
+        usersList);
+    when(client.getRoleScopeResource(realmResource, TEST_USER_ID)).thenReturn(roleScopeResource);
+
+    service.createUserRepresentation(userRepresentation, roles);
+
+    verify(client).createUserRepresentation(realmResource, userRepresentation);
+    verify(client).addRoles(roleScopeResource, roles);
   }
 }

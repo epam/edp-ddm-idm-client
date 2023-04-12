@@ -24,6 +24,7 @@ import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttribu
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
 import java.util.List;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 
 public interface IdmService {
 
@@ -67,4 +68,21 @@ public interface IdmService {
   List<IdmUser> getUserByUserName(String username);
 
   void saveUserAttribute(String username, String attribute, List<String> values);
+
+  List<RoleRepresentation> getUserRoles(String username);
+
+  UserRepresentation getUserRepresentationByUserName(String username);
+
+  void updateUserRepresentation(UserRepresentation user);
+
+  /**
+   * Create keycloak user.
+   * <p>
+   * The API currently ignores roles when creating a user. Need to add them after creating the
+   * user.
+   *
+   * @param user  entity to create
+   * @param roles list of roles to add after user creation
+   */
+  void createUserRepresentation(UserRepresentation user, List<RoleRepresentation> roles);
 }

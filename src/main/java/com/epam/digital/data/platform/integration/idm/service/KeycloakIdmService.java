@@ -117,6 +117,33 @@ public class KeycloakIdmService implements IdmService {
     client.saveUserAttribute(realmResource, user.get(0).getId(), attribute, values);
   }
 
+  @Override
+  public List<RoleRepresentation> getUserRoles(String username) {
+    var realmResource = client.getRealmResource();
+    return getRoleScopeResource(realmResource, username).listAll();
+  }
+
+  @Override
+  public UserRepresentation getUserRepresentationByUserName(String userName) {
+    var realmResource = client.getRealmResource();
+    return getUserRepresentation(realmResource, userName);
+  }
+
+  @Override
+  public void updateUserRepresentation(UserRepresentation user) {
+    var realmResource = client.getRealmResource();
+    client.updateUserRepresentation(realmResource, user);
+  }
+
+  @Override
+  public void createUserRepresentation(UserRepresentation user, List<RoleRepresentation> roles) {
+    var realmResource = client.getRealmResource();
+    client.createUserRepresentation(realmResource, user);
+
+    var roleScopeResource = getRoleScopeResource(realmResource, user.getUsername());
+    client.addRoles(roleScopeResource, roles);
+  }
+
   private List<IdmUser> mapToIdmUsers(Collection<UserRepresentation> roleUserMembers) {
     return roleUserMembers.stream()
         .filter(this::hasFullNameAttribute)

@@ -16,8 +16,8 @@
 
 package com.epam.digital.data.platform.integration.idm.client;
 
-import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
+import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleScopeResource;
@@ -84,7 +84,7 @@ public class KeycloakAdminClient {
    * Retrieve keycloak user representation by realm resource and username
    *
    * @param realmResource realm resource
-   * @param username      user name
+   * @param username      username
    * @return user representation
    */
   @NewSpan
@@ -96,6 +96,21 @@ public class KeycloakAdminClient {
         () -> String.format("Couldn't find users %s in realm %s", username, realm));
     log.info("Found {} users with username {} in realm {}", users.size(), username, realm);
     return users;
+  }
+
+  /**
+   * Update keycloak user representation
+   *
+   * @param realm realm resource
+   * @param user  representation of user to update
+   */
+  @NewSpan
+  public void updateUserRepresentation(RealmResource realm, UserRepresentation user) {
+    var userName = user.getUsername();
+    log.info("Updating user with username: {}", userName);
+    wrapKeycloakVoidRequest(() -> realm.users().get(user.getId()).update(user),
+        () -> String.format("Couldn't update user with username: %s", userName));
+    log.info("User with username: {} updated successfully", userName);
   }
 
   /**
@@ -222,7 +237,7 @@ public class KeycloakAdminClient {
   @Deprecated(forRemoval = true)
   public List<UserRepresentation> searchUsersByAttributes(
       SearchUsersByEqualsAndStartsWithAttributesRequestDto searchRequestDto) {
-    return
+    return 
         wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
                 .searchUsersByAttributes(realm, searchRequestDto),
             () -> String.format("Couldn't find users by attributes in realm %s", realm));
@@ -257,6 +272,26 @@ public class KeycloakAdminClient {
     userRepresentation.getAttributes().put(attributeName, values);
     userResource.update(userRepresentation);
     log.info("User attribute {} is saved in realm {}", attributeName, realm);
+  }
+
+  /**
+   * Create keycloak user representation
+   *
+   * @param realm realm resource
+   * @param user  representation of user to create
+   */
+  @NewSpan
+  public void createUserRepresentation(RealmResource realm, UserRepresentation user) {
+    var userName = user.getUsername();
+    var errorMessage = String.format("Couldn't create user with username: %s", userName);
+    log.info("Creating user with username: {}", userName);
+    try (var response = wrapKeycloakRequest(() -> realm.users().create(user), () -> errorMessage)) {
+      var responseStatus = response.getStatus();
+      log.info("Keycloak user creation response status: {}", responseStatus);
+      if (responseStatus != HttpStatus.SC_CREATED) {
+        throw new KeycloakException(errorMessage);
+      }
+    }
   }
 
   private <T> T wrapKeycloakRequest(Supplier<T> supplier, Supplier<String> failMessageSupplier) {

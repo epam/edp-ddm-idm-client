@@ -32,20 +32,18 @@ import org.springframework.context.ApplicationContext;
 @RequiredArgsConstructor
 public class IdmServiceFactory {
 
-  private static final String KEYCLOAK_AUTH_URL_PATTERN = "%s/auth";
   private final String serverUrl;
   private final ApplicationContext applicationContext;
   private final IdmUsersMapper idmUsersMapper;
 
   public IdmService createIdmService(String realm, String clientId, String clientSecret) {
-    var serverAthUrl = String.format(KEYCLOAK_AUTH_URL_PATTERN, this.serverUrl);
     var keycloak = KeycloakBuilder.builder()
         .clientSecret(clientSecret)
         .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
         .clientId(clientId).realm(realm)
-        .serverUrl(serverAthUrl)
+        .serverUrl(serverUrl)
         .build();
-    var keycloakAdminClient = new KeycloakAdminClient(realm, serverAthUrl, keycloak);
+    var keycloakAdminClient = new KeycloakAdminClient(realm, serverUrl, keycloak);
     return new KeycloakIdmService(keycloakAdminClient, idmUsersMapper);
   }
 

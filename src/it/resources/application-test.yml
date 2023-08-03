@@ -1,5 +1,5 @@
 keycloak:
-  url: http://localhost:8778
+  url: http://localhost:8778/auth
   test:
     realm: testRealm
     clientId: testclientId

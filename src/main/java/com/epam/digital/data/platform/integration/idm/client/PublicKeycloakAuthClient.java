@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 public interface PublicKeycloakAuthClient {
 
-  @GetMapping("/auth/realms/{realm}")
+  @GetMapping("/realms/{realm}")
   PublishedRealmRepresentation getRealmRepresentation(@PathVariable("realm") String realm);
 
 }

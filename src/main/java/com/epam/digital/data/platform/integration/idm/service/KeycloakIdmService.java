@@ -83,9 +83,9 @@ public class KeycloakIdmService implements IdmService {
   }
 
   @Override
-  public List<IdmUser> getRoleUserMembers(String role) {
+  public List<IdmUser> getRoleUserMembers(String role, Integer offset, Integer limit) {
     var realmResource = client.getRealmResource();
-    return mapToIdmUsers(client.getRoleUserMembers(realmResource, role));
+    return mapToIdmUsers(client.getRoleUserMembers(realmResource, role, offset, limit));
   }
 
   @Override

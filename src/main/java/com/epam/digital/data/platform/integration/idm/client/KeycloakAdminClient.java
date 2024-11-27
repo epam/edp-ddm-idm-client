@@ -137,10 +137,10 @@ public class KeycloakAdminClient {
    * @return list of users
    */
   @NewSpan
-  public Set<UserRepresentation> getRoleUserMembers(RealmResource realmResource, String role) {
+  public Set<UserRepresentation> getRoleUserMembers(RealmResource realmResource, String role, Integer offset, Integer limit) {
     log.info("Selecting keycloak users with role {} in realm {}", role, realm);
     var roleUserMembers = wrapKeycloakRequest(
-        () -> realmResource.roles().get(role).getRoleUserMembers(),
+        () -> realmResource.roles().get(role).getRoleUserMembers(offset, limit),
         () -> String.format("Couldn't get keycloak users with role %s in realm %s", role,
             realm));
     log.info("Selected {} users with role {} in realm {}", roleUserMembers.size(), role, realm);

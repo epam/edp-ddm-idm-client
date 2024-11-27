@@ -140,12 +140,14 @@ class KeycloakAdminClientTest {
   void testGetRoleUserMembers() {
     var userRep = new UserRepresentation();
     userRep.setUsername(username);
+    final var offset = 0;
+    final var limit = 100;
 
     when(realmResource.roles()).thenReturn(rolesResource);
     when(rolesResource.get(role)).thenReturn(roleResource);
-    when(roleResource.getRoleUserMembers()).thenReturn(Set.of(userRep));
+    when(roleResource.getRoleUserMembers(offset, limit)).thenReturn(Set.of(userRep));
 
-    var result = client.getRoleUserMembers(realmResource, role);
+    var result = client.getRoleUserMembers(realmResource, role, offset, limit);
     assertThat(result.size()).isOne();
     assertThat(result.iterator().next()).isEqualTo(userRep);
   }

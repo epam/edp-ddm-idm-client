@@ -163,13 +163,15 @@ class KeycloakIdmServiceTest {
 
   @Test
   void getRoleUserMembers() {
+    final var offset = 0;
+    final var limit = 100;
     when(client.getRealmResource()).thenReturn(realmResource);
-    when(client.getRoleUserMembers(realmResource, TEST_ROLE)).thenReturn(
+    when(client.getRoleUserMembers(realmResource, TEST_ROLE, offset, limit)).thenReturn(
         Set.of(userRepresentation));
     when(userRepresentation.getUsername()).thenReturn(TEST_USERNAME);
     when(userRepresentation.getAttributes()).thenReturn(Map.of("fullName", List.of("fullName")));
 
-    var roleUserMembers = service.getRoleUserMembers(TEST_ROLE);
+    var roleUserMembers = service.getRoleUserMembers(TEST_ROLE, offset, limit);
     assertThat(roleUserMembers).hasSize(1);
     assertThat(roleUserMembers.get(0).getUserName()).isEqualTo(TEST_USERNAME);
   }

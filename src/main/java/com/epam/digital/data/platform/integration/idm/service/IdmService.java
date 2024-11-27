@@ -42,7 +42,7 @@ public interface IdmService {
 
   void addRoles(String username, List<RoleRepresentation> roles);
 
-  List<IdmUser> getRoleUserMembers(String role);
+  List<IdmUser> getRoleUserMembers(String role, Integer offset, Integer limit);
 
   /**
    * @deprecated use {@link IdmService#searchUsers(SearchUsersByAttributesRequestDto)} instead

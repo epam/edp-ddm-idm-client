@@ -19,13 +19,8 @@ package com.epam.digital.data.platform.integration.idm.service;
 import com.epam.digital.data.platform.integration.idm.client.KeycloakAdminClient;
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
 import com.epam.digital.data.platform.integration.idm.mapper.IdmUsersMapper;
-import com.epam.digital.data.platform.integration.idm.model.IdmRole;
-import com.epam.digital.data.platform.integration.idm.model.IdmUser;
-import com.epam.digital.data.platform.integration.idm.model.IdmUsersResponse;
-import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
-import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.*;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -83,9 +78,9 @@ public class KeycloakIdmService implements IdmService {
   }
 
   @Override
-  public List<IdmUser> getRoleUserMembers(String role) {
+  public List<IdmUser> getRoleUserMembers(String role, Integer offset, Integer limit) {
     var realmResource = client.getRealmResource();
-    return mapToIdmUsers(client.getRoleUserMembers(realmResource, role));
+    return mapToIdmUsers(client.getRoleUserMembers(realmResource, role, offset, limit));
   }
 
   @Override
@@ -102,6 +97,12 @@ public class KeycloakIdmService implements IdmService {
   @Override
   public IdmUsersResponse searchUsers(SearchUsersByAttributesRequestDto requestDto) {
     return idmUsersMapper.toIdmUsersResponse(client.searchUsersByAttributes(requestDto));
+  }
+
+  @Override
+  public IdmUsersResponse searchUsersByRoleAndAttributes(
+      SearchUsersByRoleAndAttributesRequestDto requestDto) {
+    return idmUsersMapper.toIdmUsersResponse(client.searchUsersByRoleAndAttributes(requestDto));
   }
 
   @Override
@@ -147,7 +148,8 @@ public class KeycloakIdmService implements IdmService {
   private List<IdmUser> mapToIdmUsers(Collection<UserRepresentation> roleUserMembers) {
     return roleUserMembers.stream()
         .filter(this::hasFullNameAttribute)
-        .map(user -> IdmUser.builder().id(user.getId()).userName(user.getUsername()).fullName(
+        .map(user -> IdmUser.builder().id(user.getId())
+                .enabled(user.isEnabled()).userName(user.getUsername()).fullName(
                 user.getAttributes().get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE)
                     .get(KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE_INDEX))
             .attributes(user.getAttributes())

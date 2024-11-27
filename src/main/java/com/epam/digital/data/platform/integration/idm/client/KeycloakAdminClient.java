@@ -17,10 +17,7 @@
 package com.epam.digital.data.platform.integration.idm.client;
 
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
-import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.*;
 import com.epam.digital.data.platform.integration.idm.resource.UsersExtendedResource;
 import com.google.common.collect.Maps;
 import java.net.URI;
@@ -137,10 +134,10 @@ public class KeycloakAdminClient {
    * @return list of users
    */
   @NewSpan
-  public Set<UserRepresentation> getRoleUserMembers(RealmResource realmResource, String role) {
+  public Set<UserRepresentation> getRoleUserMembers(RealmResource realmResource, String role, Integer offset, Integer limit) {
     log.info("Selecting keycloak users with role {} in realm {}", role, realm);
     var roleUserMembers = wrapKeycloakRequest(
-        () -> realmResource.roles().get(role).getRoleUserMembers(),
+        () -> realmResource.roles().get(role).getRoleUserMembers(offset, limit),
         () -> String.format("Couldn't get keycloak users with role %s in realm %s", role,
             realm));
     log.info("Selected {} users with role {} in realm {}", roleUserMembers.size(), role, realm);
@@ -252,11 +249,21 @@ public class KeycloakAdminClient {
    * @see SearchUsersByAttributesRequestDto
    */
   @NewSpan
+  @Deprecated(forRemoval = true)
   public SearchUsersByAttributesResponseDto searchUsersByAttributes(
       SearchUsersByAttributesRequestDto requestDto) {
     return
         wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
                 .searchUsersByAttributes(realm, requestDto),
+            () -> String.format("Couldn't find users by attributes in realm %s", realm));
+  }
+
+  @NewSpan
+  public SearchUsersByRoleAndAttributesResponseDto searchUsersByRoleAndAttributes(
+      SearchUsersByRoleAndAttributesRequestDto requestDto) {
+    return
+        wrapKeycloakRequest(() -> keycloak.proxy(UsersExtendedResource.class, URI.create(serverUrl))
+                .searchUsersByRoleAndAttributes(realm, requestDto),
             () -> String.format("Couldn't find users by attributes in realm %s", realm));
   }
 

@@ -25,10 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.digital.data.platform.integration.idm.exception.KeycloakException;
-import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
-import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
-import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
+import com.epam.digital.data.platform.integration.idm.model.*;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto.Pagination;
 import com.epam.digital.data.platform.integration.idm.resource.UsersExtendedResource;
 import java.net.URI;
@@ -140,12 +137,14 @@ class KeycloakAdminClientTest {
   void testGetRoleUserMembers() {
     var userRep = new UserRepresentation();
     userRep.setUsername(username);
+    final var offset = 0;
+    final var limit = 100;
 
     when(realmResource.roles()).thenReturn(rolesResource);
     when(rolesResource.get(role)).thenReturn(roleResource);
-    when(roleResource.getRoleUserMembers()).thenReturn(Set.of(userRep));
+    when(roleResource.getRoleUserMembers(offset, limit)).thenReturn(Set.of(userRep));
 
-    var result = client.getRoleUserMembers(realmResource, role);
+    var result = client.getRoleUserMembers(realmResource, role, offset, limit);
     assertThat(result.size()).isOne();
     assertThat(result.iterator().next()).isEqualTo(userRep);
   }
@@ -264,6 +263,38 @@ class KeycloakAdminClientTest {
         .searchUsersByAttributes(realm, searchRequest);
 
     assertThatThrownBy(() -> client.searchUsersByAttributes(searchRequest))
+        .isInstanceOf(KeycloakException.class)
+        .hasMessage("Couldn't find users by attributes in realm %s", realm);
+  }
+
+  @Test
+  void testSearchUsersByRoleAndAttributes() {
+    var searchRequest = SearchUsersByRoleAndAttributesRequestDto.builder().build();
+    var userRepresentations = Collections.singletonList(mock(UserRepresentation.class));
+    var searchResponse = new SearchUsersByRoleAndAttributesResponseDto();
+    searchResponse.setUsers(userRepresentations);
+
+    var resource = mock(UsersExtendedResource.class);
+    Mockito.doReturn(resource).when(keycloak)
+        .proxy(UsersExtendedResource.class, URI.create("testUrl"));
+    Mockito.doReturn(searchResponse).when(resource).searchUsersByRoleAndAttributes(realm, searchRequest);
+
+    var actual = client.searchUsersByRoleAndAttributes(searchRequest);
+
+    assertThat(actual).isSameAs(searchResponse);
+  }
+
+  @Test
+  void testSearchUsersByRoleAndAttributes_exception() {
+    var searchRequest = SearchUsersByRoleAndAttributesRequestDto.builder().build();
+
+    var resource = mock(UsersExtendedResource.class);
+    Mockito.doReturn(resource).when(keycloak)
+        .proxy(UsersExtendedResource.class, URI.create("testUrl"));
+    Mockito.doThrow(RuntimeException.class).when(resource)
+        .searchUsersByRoleAndAttributes(realm, searchRequest);
+
+    assertThatThrownBy(() -> client.searchUsersByRoleAndAttributes(searchRequest))
         .isInstanceOf(KeycloakException.class)
         .hasMessage("Couldn't find users by attributes in realm %s", realm);
   }

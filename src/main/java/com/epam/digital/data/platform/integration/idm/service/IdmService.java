@@ -22,7 +22,9 @@ import com.epam.digital.data.platform.integration.idm.model.IdmUsersResponse;
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByRoleAndAttributesRequestDto;
 import java.util.List;
+import java.util.Optional;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
@@ -42,7 +44,7 @@ public interface IdmService {
 
   void addRoles(String username, List<RoleRepresentation> roles);
 
-  List<IdmUser> getRoleUserMembers(String role);
+  List<IdmUser> getRoleUserMembers(String role, Integer offset, Integer limit);
 
   /**
    * @deprecated use {@link IdmService#searchUsers(SearchUsersByAttributesRequestDto)} instead
@@ -64,6 +66,8 @@ public interface IdmService {
    * @return list of found users with token for the next page of users
    */
   IdmUsersResponse searchUsers(SearchUsersByAttributesRequestDto requestDto);
+
+  IdmUsersResponse searchUsersByRoleAndAttributes(SearchUsersByRoleAndAttributesRequestDto requestDto);
 
   List<IdmUser> getUserByUserName(String username);
 

@@ -20,6 +20,8 @@ import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByEqualsAndStartsWithAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByRoleAndAttributesRequestDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByRoleAndAttributesResponseDto;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -61,4 +63,10 @@ public interface UsersExtendedResource {
   @Consumes(MediaType.APPLICATION_JSON)
   SearchUsersByAttributesResponseDto searchUsersByAttributes(@PathParam("realm") String realm,
       SearchUsersByAttributesRequestDto requestDto);
+
+  @POST
+  @Path("/search-by-role-and-attributes")
+  @Consumes(MediaType.APPLICATION_JSON)
+  SearchUsersByRoleAndAttributesResponseDto searchUsersByRoleAndAttributes(@PathParam("realm") String realm,
+      SearchUsersByRoleAndAttributesRequestDto requestDto);
 }

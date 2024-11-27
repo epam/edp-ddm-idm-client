@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,20 +16,13 @@
 
 package com.epam.digital.data.platform.integration.idm.model;
 
-import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
-import lombok.Builder;
 import lombok.Data;
+import org.keycloak.representations.idm.UserRepresentation;
 
 @Data
-@Builder
-public class IdmUser implements Serializable {
+public class SearchUsersByRoleAndAttributesResponseDto {
 
-  private Boolean enabled;
-  private String id;
-  private String userName;
-  private String fullName;
-  private Map<String, List<String>> attributes;
+  private List<UserRepresentation> users;
 
 }

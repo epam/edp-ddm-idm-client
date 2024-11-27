@@ -30,6 +30,7 @@ import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttrib
 import com.epam.digital.data.platform.integration.idm.model.SearchUserQuery;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesRequestDto.Pagination;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByRoleAndAttributesRequestDto;
 import com.epam.digital.data.platform.integration.idm.service.IdmService;
 import com.epam.digital.data.platform.integration.idm.service.PublicIdmService;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -153,6 +154,46 @@ class KeycloakAuthRestClientIT {
             "hierarchy", List.of("100")));
     Assertions.assertThat(actualIdmUserResponse.getPagination())
         .hasFieldOrPropertyWithValue("continueToken", 1025);
+  }
+
+  @Test
+  void testSearchUsersByRoleAndAttributes() {
+    keycloakMockServer.addStubMapping(stubFor(
+        post(urlPathEqualTo("/auth/realms/" + realm + "/users/search-by-role-and-attributes"))
+            .withRequestBody(
+                equalToJson(jsonToStr("/json/keycloakSearchUserByRoleAndAttributesRequest.json")))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-type", "application/json")
+                .withBody(jsonToStr("/json/keycloakSearchUserByRoleAndAttributesResponse.json")))));
+
+    var searchRequestDto = SearchUsersByRoleAndAttributesRequestDto.builder()
+        .attributesStartsWith(Map.of("hierarchy", List.of("100")))
+        .pagination(SearchUsersByRoleAndAttributesRequestDto.OffsetPagination.builder().offset(0).limit(2).build())
+        .build();
+
+    var actualIdmUserResponse = idmService.searchUsersByRoleAndAttributes(searchRequestDto);
+
+    Assertions.assertThat(actualIdmUserResponse)
+        .hasFieldOrProperty("users");
+    Assertions.assertThat(actualIdmUserResponse.getUsers())
+        .hasSize(2)
+        .element(0)
+        .hasFieldOrPropertyWithValue("id", "someNextId")
+        .hasFieldOrPropertyWithValue("userName", "jane_doe")
+        .hasFieldOrPropertyWithValue("fullName", "Jane Doe")
+        .hasFieldOrPropertyWithValue("attributes", Map.of(
+            KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE, List.of("Jane Doe"),
+            KeycloakSystemAttribute.DRFO, List.of("1234567890"),
+            "hierarchy", List.of("100.200", "101")));
+    Assertions.assertThat(actualIdmUserResponse.getUsers())
+        .element(1)
+        .hasFieldOrPropertyWithValue("id", "someId")
+        .hasFieldOrPropertyWithValue("userName", "john_doe")
+        .hasFieldOrPropertyWithValue("fullName", "John Doe")
+        .hasFieldOrPropertyWithValue("attributes", Map.of(
+            KeycloakSystemAttribute.FULL_NAME_ATTRIBUTE, List.of("John Doe"),
+            KeycloakSystemAttribute.DRFO, List.of("1234567891"),
+            "hierarchy", List.of("100")));
   }
 
   @Test

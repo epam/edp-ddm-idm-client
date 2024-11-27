@@ -20,6 +20,7 @@ import com.epam.digital.data.platform.integration.idm.model.IdmUser;
 import com.epam.digital.data.platform.integration.idm.model.IdmUsersResponse;
 import com.epam.digital.data.platform.integration.idm.model.KeycloakSystemAttribute;
 import com.epam.digital.data.platform.integration.idm.model.SearchUsersByAttributesResponseDto;
+import com.epam.digital.data.platform.integration.idm.model.SearchUsersByRoleAndAttributesResponseDto;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -58,6 +59,9 @@ public interface IdmUsersMapper {
 
   @Mapping(source = "users", target = "users", qualifiedByName = "mapToIdmUsersSortedByFullName")
   IdmUsersResponse toIdmUsersResponse(SearchUsersByAttributesResponseDto responseDto);
+
+  @Mapping(source = "users", target = "users", qualifiedByName = "mapToIdmUsersSortedByFullName")
+  IdmUsersResponse toIdmUsersResponse(SearchUsersByRoleAndAttributesResponseDto responseDto);
 
   private boolean hasFullNameAttribute(@NonNull UserRepresentation user) {
     var attribute = user.getAttributes();
